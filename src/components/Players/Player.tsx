@@ -87,11 +87,13 @@ const Home = () => {
       <audio ref={audioRef} src='/musics/Lights.mp3' />
       <div className='flex flex-col justify-between'>
         <div className='flex gap-24 items-center'>
+          {/* Album Title */}
           <motion.div
             className='h-120 w-120 rounded-[12px] bg-gradient-to-br from-[#7C3AED] to-[#DB2777] flex justify-center items-center'
             variants={albumVariant}
             initial='paused'
             animate={state}
+            style={{ willChange: 'transform, opacity' }}
           >
             <Music height={60} width={48} />
           </motion.div>
@@ -104,6 +106,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Equalizer Bar */}
         <div className='flex items-end h-32 pl-[144px] gap-4'>
           {[0, 1, 2, 3, 4].map((barIndex) => (
             <motion.div
@@ -111,6 +114,7 @@ const Home = () => {
               className='w-8 bg-[#8B5CF6]'
               variants={equalizerBarsVariant}
               custom={barIndex}
+              style={{ willChange: 'height, opacity' }}
               animate={state}
               initial='paused'
             />
@@ -118,11 +122,13 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Music Progress Bar */}
       <div className='h-8 rounded-full bg-[#252B37]'>
         <motion.div
           className='h-8 rounded-full bg-[#717680]'
           initial={{ width: '0%' }}
           animate={{ width: `${progress}%` }}
+          style={{ willChange: 'width' }}
           transition={{ duration: 0.3, ease: 'linear' }}
         />
       </div>
