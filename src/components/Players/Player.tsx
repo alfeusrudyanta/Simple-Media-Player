@@ -29,6 +29,9 @@ const Home = () => {
   const [repeatOn, setRepeatOn] = useState<boolean>(false);
   const [shuffleOn, setShuffleOn] = useState<boolean>(false);
   const [isMute, setIsMute] = useState<boolean>(false);
+  const [volume, setVolume] = useState(0.7);
+  const [prevVolume, setPrevVolume] = useState(0.7);
+  const volumeBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -59,6 +62,37 @@ const Home = () => {
       audio.removeEventListener('timeupdate', handleUpdateTime);
     };
   }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume;
+  }, [volume]);
+
+  const handleVolumeChange = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!volumeBarRef.current) return;
+
+    const rect = volumeBarRef.current.getBoundingClientRect();
+    const clickPosition = e.clientX - rect.left;
+    const barWidth = rect.width;
+    const newVolume = Math.min(1, Math.max(0, clickPosition / barWidth));
+
+    setVolume(newVolume);
+
+    if (isMute) setIsMute(false);
+  };
+
+  const toggleMute = () => {
+    if (!isMute) {
+      setPrevVolume(volume);
+      setVolume(0);
+    } else {
+      setVolume(prevVolume);
+    }
+
+    setIsMute(!isMute);
+  };
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -228,7 +262,7 @@ const Home = () => {
               width={16}
               color='#A4A7AE'
               className='cursor-pointer'
-              onClick={() => setIsMute(false)}
+              onClick={toggleMute}
             />
           ) : (
             <Volume2
@@ -237,13 +271,18 @@ const Home = () => {
               width={16}
               color='#A4A7AE'
               className='cursor-pointer'
-              onClick={() => setIsMute(true)}
+              onClick={toggleMute}
             />
           )}
         </AnimatePresence>
-        <div className='h-4 w-full rounded-full bg-[#252B37] cursor-pointer'>
+        <div
+          ref={volumeBarRef}
+          className='h-4 w-full rounded-full bg-[#252B37] cursor-pointer'
+          onClick={handleVolumeChange}
+        >
           <motion.div
             className='h-4 w-307 rounded-full bg-[#717680]'
+            style={{ width: `${volume * 100}%` }}
             whileHover={{ backgroundColor: '#a855f7' }}
             transition={{ duration: 0.2 }}
           />
