@@ -26,7 +26,7 @@ const Home = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [repeatOn, setRepeatOn] = useState<boolean>(false);
+  const [isRepeat, setIsRepeat] = useState<boolean>(false);
   const [shuffleOn, setShuffleOn] = useState<boolean>(false);
   const [isMute, setIsMute] = useState<boolean>(false);
   const [volume, setVolume] = useState(0.7);
@@ -70,6 +70,12 @@ const Home = () => {
     audio.volume = volume;
   }, [volume]);
 
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.loop = isRepeat;
+    }
+  }, [isRepeat]);
+
   const handleVolumeChange = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!volumeBarRef.current) return;
 
@@ -92,6 +98,10 @@ const Home = () => {
     }
 
     setIsMute(!isMute);
+  };
+
+  const handleRepeatToggle = () => {
+    setIsRepeat((prev) => !prev);
   };
 
   const formatTime = (time: number) => {
@@ -133,10 +143,12 @@ const Home = () => {
           </motion.div>
 
           <div className='flex flex-col gap-5'>
-            <p className='text-lg-semibold text-[#F5F5F5]'>
-              Awesome Song Title
+            <p className='text-lg-semibold text-[#F5F5F5] line-clamp-1'>
+              Lights
             </p>
-            <p className='text-sm-regular text-[#A4A7AE]'>Amazing Artist</p>
+            <p className='text-sm-regular text-[#A4A7AE] line-clamp-1'>
+              Sakura Girl
+            </p>
           </div>
         </div>
 
@@ -157,14 +169,16 @@ const Home = () => {
       </div>
 
       {/* Music Progress Bar */}
-      <div className='h-8 rounded-full bg-[#252B37]'>
+      <div className='h-8 rounded-full bg-[#252B37] group cursor-pointer'>
         <motion.div
-          className='h-8 rounded-full bg-[#717680]'
+          className='h-8 rounded-full bg-[#717680] group-hover:bg-[#a855f7] flex items-center'
           initial={{ width: '0%' }}
           animate={{ width: `${progress}%` }}
           style={{ willChange: 'width' }}
           transition={{ duration: 0.3, ease: 'linear' }}
-        />
+        >
+          <div className='h-12 w-12 ml-auto rounded-full group-hover:bg-[#a855f7]' />
+        </motion.div>
       </div>
 
       {/* Time List */}
@@ -179,6 +193,7 @@ const Home = () => {
 
       {/* Icon List */}
       <div className='flex justify-center items-center gap-16'>
+        {/* Shuffle Icon */}
         <motion.div
           className={cn(
             'flex rounded-[8px] p-8 gap-8 cursor-pointer',
@@ -194,6 +209,7 @@ const Home = () => {
           <Shuffle height={20} width={20} />
         </motion.div>
 
+        {/* Skip Back Icon */}
         <motion.div
           className='flex rounded-[8px] p-8 gap-8 cursor-pointer text-[#D5D7DA]'
           whileHover={{
@@ -205,6 +221,7 @@ const Home = () => {
           <SkipBack height={20} width={20} />
         </motion.div>
 
+        {/* Play/Pause Icon */}
         <motion.div
           className='h-56 w-56 p-8 gap-8 flex items-center justify-center rounded-full cursor-pointer'
           onClick={HandleState}
@@ -225,6 +242,7 @@ const Home = () => {
           </AnimatePresence>
         </motion.div>
 
+        {/* Skip Forward Icon */}
         <motion.div
           className='flex rounded-[8px] p-8 gap-8 cursor-pointer text-[#D5D7DA]'
           whileHover={{
@@ -236,17 +254,18 @@ const Home = () => {
           <SkipForward height={20} width={20} />
         </motion.div>
 
+        {/* Repeat Icon */}
         <motion.div
           className={cn(
             'flex rounded-[8px] p-8 gap-8 cursor-pointer',
-            repeatOn ? 'text-[#8B5CF6]' : 'text-[#D5D7DA]'
+            isRepeat ? 'text-[#8B5CF6]' : 'text-[#D5D7DA]'
           )}
           whileHover={{
             backgroundColor: '#374151',
             scale: 1.05,
           }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setRepeatOn(!repeatOn)}
+          onClick={() => handleRepeatToggle()}
         >
           <Repeat height={20} width={20} />
         </motion.div>
@@ -274,18 +293,21 @@ const Home = () => {
               onClick={toggleMute}
             />
           )}
+
+          {/* Volume Bar */}
         </AnimatePresence>
         <div
           ref={volumeBarRef}
-          className='h-4 w-full rounded-full bg-[#252B37] cursor-pointer'
+          className='h-4 w-full rounded-full bg-[#252B37] cursor-pointer group'
           onClick={handleVolumeChange}
         >
           <motion.div
-            className='h-4 w-307 rounded-full bg-[#717680]'
+            className='h-4 w-307 rounded-full bg-[#717680] flex items-center group-hover:bg-[#a855f7]'
             style={{ width: `${volume * 100}%` }}
-            whileHover={{ backgroundColor: '#a855f7' }}
             transition={{ duration: 0.2 }}
-          />
+          >
+            <div className='ml-auto h-10 w-10 rounded-full group-hover:bg-[#a855f7]' />
+          </motion.div>
         </div>
       </div>
     </motion.div>
