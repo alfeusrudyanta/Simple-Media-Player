@@ -32,6 +32,7 @@ const Home = () => {
   const [volume, setVolume] = useState(0.7);
   const [prevVolume, setPrevVolume] = useState(0.7);
   const volumeBarRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const musicTracks = useMemo(
     () => ['/musics/Lights.mp3', '/musics/A-Promise.mp3', '/musics/Nature.mp3'],
     []
@@ -40,6 +41,7 @@ const Home = () => {
   const [musicTitle, setMusicTitle] = useState<string>('Lights');
   const [musicArtist, setMusicArtist] = useState<string>('');
 
+  /* Music Metadata */
   useEffect(() => {
     const trackMetadata = [
       { title: 'Lights', artist: 'Sakura Girl' },
@@ -66,6 +68,19 @@ const Home = () => {
       audio.pause();
     }
   }, [state]);
+
+  /* Progress Bar */
+  const handleProgressBarChange = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || !audioRef.current) return;
+
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickPosition = e.clientX - rect.left;
+    const barWidth = rect.width;
+    const newProgress = Math.min(1, Math.max(0, clickPosition / barWidth));
+
+    audioRef.current.currentTime = newProgress * audioRef.current.duration;
+    setCurrentTime(newProgress * audioRef.current.duration);
+  };
 
   /* Time Duration */
   useEffect(() => {
@@ -139,7 +154,7 @@ const Home = () => {
     setState('playing');
   };
 
-  /* Repeat & Shuffle */
+  /* Repeat */
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.loop = isRepeat;
@@ -150,33 +165,33 @@ const Home = () => {
     setIsRepeat((prev) => !prev);
   };
 
+  /* Shuffle */
   const handleShuffleToggle = () => {
     setIsShuffle((prev) => !prev);
   };
 
+  /* HandleTrackEnd */
   const handleTrackEnd = async () => {
-    if (isRepeat) {
-      setState('loading');
-      await new Promise((res) => setTimeout(res, 500));
-      setState('playing');
+    if (isRepeat && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      await audioRef.current.play();
       return;
-    }
-
-    if (isShuffle) {
-      const currentIndex = musicTracks.indexOf(currentMusic);
-      let nextIndex;
-      do {
-        nextIndex = Math.floor(Math.random() * musicTracks.length);
-      } while (nextIndex === currentIndex && musicTracks.length > 1);
-      setCurrentMusic(musicTracks[nextIndex]);
-    } else {
-      const nextIndex =
-        (musicTracks.indexOf(currentMusic) + 1) % musicTracks.length;
-      setCurrentMusic(musicTracks[nextIndex]);
     }
 
     setState('loading');
     await new Promise((res) => setTimeout(res, 500));
+
+    let nextIndex;
+    if (isShuffle) {
+      const currentIndex = musicTracks.indexOf(currentMusic);
+      do {
+        nextIndex = Math.floor(Math.random() * musicTracks.length);
+      } while (nextIndex === currentIndex && musicTracks.length > 1);
+    } else {
+      nextIndex = (musicTracks.indexOf(currentMusic) + 1) % musicTracks.length;
+    }
+
+    setCurrentMusic(musicTracks[nextIndex]);
     setState('playing');
   };
 
@@ -247,12 +262,15 @@ const Home = () => {
       </div>
 
       {/* Music Progress Bar */}
-      <div className='h-8 rounded-full bg-[#252B37] group cursor-pointer'>
+      <div
+        ref={progressBarRef}
+        className='h-8 rounded-full bg-[#252B37] group cursor-pointer'
+        onClick={handleProgressBarChange}
+      >
         <motion.div
           className='h-8 rounded-full bg-[#717680] group-hover:bg-[#a855f7] flex items-center'
           initial={{ width: '0%' }}
           animate={{ width: `${progress}%` }}
-          style={{ willChange: 'width' }}
           transition={{ duration: 0.3, ease: 'linear' }}
         >
           <div className='h-12 w-12 ml-auto rounded-full group-hover:bg-[#a855f7]' />
